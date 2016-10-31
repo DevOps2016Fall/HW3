@@ -108,7 +108,7 @@ app.get('/destroy',function(req,res){
 
 function callLIndex(callback) {
     /* ... do stuff ... */
-		var index = parseInt(Math.random()*client.llen('serversList'))
+		var index = Math.floor(Math.random()*Object.keys(serversList).length)
 		console.log(index)
     client.lindex('serversList', index, function(err, result) {
         // If you need to process the result before "returning" it, do that here
@@ -118,6 +118,16 @@ function callLIndex(callback) {
     });
 }
 
+app.get('/listservers',function(req,res){
+	var live_servers="The available servers are listening on the following ports: \n"
+	client.lrange('serversList',0,-1,function(err,value){ 
+		// console.log(value);
+		value.forEach(function(item){
+			live_servers +="\n\t" +item.toString()
+		})
+	res.send(live_servers)});
+
+})
 
 
 // HTTP SERVER
