@@ -4,7 +4,7 @@ var express = require('express')
 var fs      = require('fs')
 var app = express()
 var client = redis.createClient(6379, '127.0.0.1', {})
-var serversList = []
+var serversList = {}
 
 // REDIS
 //var client = redis.createClient(6379, '127.0.0.1', {})
@@ -85,18 +85,47 @@ app.get('/set',function(req,res){
 })
 
 app.get('/spawn/:portID',function(req,res){
-	serversList.push(createServers(req.params["portID"]))
+	// serversList.push(createServers(req.params["portID"]))
+	serversList[req.params["portID"]] = createServers(req.params["portID"])
 	res.send(req.params)
 })
+
+app.get('/destroy',function(req,res){
+	if (client.llen('serversList')==0){
+		res.send("<h1>\n No server exists!'/>")
+	}
+	else{
+    callLIndex(function(err, serverID) {
+    // Use result here
+    console.log(serverID)
+    client.lrem('serversList',0, serverID)
+    serversList[serverID].close()
+    delete serversList[serverID]
+    res.send("Server :"+serverID+" deleted!")
+    });
+	}
+})
+
+function callLIndex(callback) {
+    /* ... do stuff ... */
+		var index = parseInt(Math.random()*client.llen('serversList'))
+		console.log(index)
+    client.lindex('serversList', index, function(err, result) {
+        // If you need to process the result before "returning" it, do that here
+
+        // Pass the result on to your callback
+        callback(err, result)
+    });
+}
 
 
 
 // HTTP SERVER
 var server = app.listen(3000, function () {
   client.del('_recent0')
+  client.del('serversList')
   var host = server.address().address
   var port = server.address().port
-  client.set("servers",port)
   console.log('Example app listening at http://%s:%s', host, port)
 })
 
@@ -104,8 +133,9 @@ function createServers(portID){
 	var server1 = app.listen(parseInt(portID),function(){
 	var host = server1.address().address
 	var port = server1.address().port
-	client.set("servers",port)
 	})
+	console.log(portID)
+	client.lpush("serversList",portID.toString())
 	return server1
 }
 
