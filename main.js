@@ -2,9 +2,13 @@ var redis = require('redis')
 var multer  = require('multer')
 var express = require('express')
 var fs      = require('fs')
+var http      = require('http');
+var httpProxy = require('http-proxy');
 var app = express()
 var client = redis.createClient(6379, '127.0.0.1', {})
 var serversList = {}
+var args = process.argv.slice(2);
+var PORT = args[0];
 
 // REDIS
 //var client = redis.createClient(6379, '127.0.0.1', {})
@@ -55,7 +59,7 @@ app.get('/meow', function(req, res) {
 })
 
 app.get('/', function(req, res) {
-  res.send('hello world')
+  res.send(PORT.toString())
 })
 
 app.get('/recent',function(req,res){
@@ -131,9 +135,9 @@ app.get('/listservers',function(req,res){
 
 
 // HTTP SERVER
-var server = app.listen(3000, function () {
+var server = app.listen(PORT, function () {
   client.del('_recent0')
-  client.del('serversList')
+  // client.del('serversList')
   var host = server.address().address
   var port = server.address().port
   console.log('Example app listening at http://%s:%s', host, port)
@@ -145,7 +149,7 @@ function createServers(portID){
 	var port = server1.address().port
 	})
 	console.log(portID)
-	client.lpush("serversList",portID.toString())
+	client.lpush("serversList","http://localhost:"+portID.toString()+"/")
 	return server1
 }
 
