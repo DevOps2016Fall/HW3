@@ -59,7 +59,7 @@ app.get('/meow', function(req, res) {
 })
 
 app.get('/', function(req, res) {
-  res.send(PORT.toString())
+  res.send("Hello world from server http://localhost:" + PORT.toString()+"/")
 })
 
 app.get('/recent',function(req,res){
@@ -68,7 +68,7 @@ app.get('/recent',function(req,res){
 	client.lrange('_recent0',0,4,function(err,value){ 
 		// console.log(value);
 		value.forEach(function(item){
-			send_ulrs +="\n\t" +item.toString()
+			send_ulrs +=" \n " +item.toString()
 		})
 	res.send(send_ulrs)});
 })
@@ -88,50 +88,50 @@ app.get('/set',function(req,res){
 	res.send('setting key!')
 })
 
-app.get('/spawn/:portID',function(req,res){
-	// serversList.push(createServers(req.params["portID"]))
-	serversList[req.params["portID"]] = createServers(req.params["portID"])
-	res.send(req.params)
-})
+// app.get('/spawn/:portID',function(req,res){
+// 	// serversList.push(createServers(req.params["portID"]))
+// 	serversList[req.params["portID"]] = createServers(req.params["portID"])
+// 	res.send(req.params)
+// })
 
-app.get('/destroy',function(req,res){
-	if (client.llen('serversList')==0){
-		res.send("<h1>\n No server exists!'/>")
-	}
-	else{
-    callLIndex(function(err, serverID) {
-    // Use result here
-    console.log(serverID)
-    client.lrem('serversList',0, serverID)
-    serversList[serverID].close()
-    delete serversList[serverID]
-    res.send("Server :"+serverID+" deleted!")
-    });
-	}
-})
+// app.get('/destroy',function(req,res){
+// 	if (client.llen('serversList')==0){
+// 		res.send("<h1>\n No server exists!'/>")
+// 	}
+// 	else{
+//     callLIndex(function(err, serverID) {
+//     // Use result here
+//     console.log(serverID)
+//     client.lrem('serversList',0, serverID)
+//     serversList[serverID].close()
+//     delete serversList[serverID]
+//     res.send("Server :"+serverID+" deleted!")
+//     });
+// 	}
+// })
 
-function callLIndex(callback) {
-    /* ... do stuff ... */
-		var index = Math.floor(Math.random()*Object.keys(serversList).length)
-		console.log(index)
-    client.lindex('serversList', index, function(err, result) {
-        // If you need to process the result before "returning" it, do that here
+// function callLIndex(callback) {
+//     /* ... do stuff ... */
+// 		var index = Math.floor(Math.random()*Object.keys(serversList).length)
+// 		console.log(index)
+//     client.lindex('serversList', index, function(err, result) {
+//         // If you need to process the result before "returning" it, do that here
 
-        // Pass the result on to your callback
-        callback(err, result)
-    });
-}
+//         // Pass the result on to your callback
+//         callback(err, result)
+//     });
+// }
 
-app.get('/listservers',function(req,res){
-	var live_servers="The available servers are listening on the following ports: \n"
-	client.lrange('serversList',0,-1,function(err,value){ 
-		// console.log(value);
-		value.forEach(function(item){
-			live_servers +="\n\t" +item.toString()
-		})
-	res.send(live_servers)});
+// app.get('/listservers',function(req,res){
+// 	var live_servers="The available servers are listening on the following ports: \n"
+// 	client.lrange('serversList',0,-1,function(err,value){ 
+// 		// console.log(value);
+// 		value.forEach(function(item){
+// 			live_servers +="\n\t" +item.toString()
+// 		})
+// 	res.send(live_servers)});
 
-})
+// })
 
 
 // HTTP SERVER
@@ -143,14 +143,14 @@ var server = app.listen(PORT, function () {
   console.log('Example app listening at http://%s:%s', host, port)
 })
 
-function createServers(portID){
-	var server1 = app.listen(parseInt(portID),function(){
-	var host = server1.address().address
-	var port = server1.address().port
-	})
-	console.log(portID)
-	client.lpush("serversList","http://localhost:"+portID.toString()+"/")
-	return server1
-}
+// function createServers(portID){
+// 	var server1 = app.listen(parseInt(portID),function(){
+// 	var host = server1.address().address
+// 	var port = server1.address().port
+// 	})
+// 	console.log(portID)
+// 	client.lpush("serversList","http://localhost:"+portID.toString()+"/")
+// 	return server1
+// }
 
 

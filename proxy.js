@@ -17,13 +17,11 @@ var infrastructure =
     // Proxy.
     var options = {};
     var proxy   = httpProxy.createProxyServer(options);
-
     var server  = http.createServer(function(req, res)
     {
       if (req.url == "/spawn")
       {
         START_PORT +=1
-        // TARGET = 'http://127.0.0.1:'+ START_PORT.toString()
         exec('forever start main.js ' + START_PORT,function(err,out,code)
         {
           console.log("attempting to launch "+ START_PORT.toString() +" server");
@@ -34,10 +32,9 @@ var infrastructure =
             console.error( err );
           }
           client.lpush("serversList","http://localhost:"+START_PORT.toString()+"/")
-          res.writeHead(200, {'Content-Type': 'text/plain'});
-          res.end("Create a  server : "+ "http://localhost:"+START_PORT.toString());
         })
-
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.end("Create a  server : "+ "http://localhost:"+START_PORT.toString());
       }
       if(req.url == "/destroy")
       {
@@ -46,15 +43,12 @@ var infrastructure =
           var PortID = src.substring(start,start+4) //"http://localhost:4000/"
           exec("forever list | grep '"+PortID+"' | awk -F '] ' '{print $2}' | awk -F ' ' '{print $1}'", function(err,out,code)
           {
-            console.log(err)
-            console.log(code)
-            console.log("output is: "+out.toString())
             exec("forever stop "+ out, function(err,out,code){
               console.log("destroy server: "+ PortID.toString())
-              res.writeHead(200, {'Content-Type': 'text/plain'});
-              res.end("destroy server: "+ PortID.toString());
             });
           }); 
+          res.writeHead(200, {'Content-Type': 'text/plain'});
+          res.end("Destroy a server: http://localhost:"+ PortID.toString()+"/");
         })
       }
       if(req.url == "/")
@@ -66,7 +60,7 @@ var infrastructure =
       }
       if(req.url == "/listservers")
       {
-        var live_servers="The available servers are listening on the following ports: \n"
+        var live_servers="The following servers are available: \n"
         client.lrange('serversList',0,-1,function(err,value){ 
         value.forEach(function(item){
         live_servers +="\n\t" +item.toString()})
@@ -77,7 +71,6 @@ var infrastructure =
     });
     server.listen(8081);
 
-    // Launch green slice
     exec('forever start main.js 4000', function(err, out, code) 
     {
       client.del("serversList")
@@ -90,17 +83,6 @@ var infrastructure =
         console.error( err );
       }
     }); 
-
-setInterval(function(){
-  
-});
-//setTimeout
-//var options = 
-//{
-//  url: "http://localhost:8080",
-//};
-//request(options, function (error, res, body) {
-
   },
 
   teardown: function()
